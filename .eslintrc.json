@@ -33,11 +33,16 @@
       "@typescript-eslint/triple-slash-reference": 0,
       "no-use-before-define": "off",
       "@typescript-eslint/no-use-before-define": "off",
-
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
       "react/jsx-filename-extension": [1, {"extensions": [".tsx"]}],
       "import/prefer-default-export": "off",
+      "@typescript-eslint/explicit-function-return-type": [
+        "error",
+        {
+          "allowExpressions": true
+        }
+      ],
       "import/extensions": [
         "error",
         "ignorePackages",
@@ -52,4 +57,5 @@
         "typescript": {}
       }
     }
+
 }
