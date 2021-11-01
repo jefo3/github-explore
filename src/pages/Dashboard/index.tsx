@@ -1,5 +1,7 @@
 /* eslint-disable react/jsx-no-bind */
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Link } from 'react-router-dom';
 import { FiChevronRight } from 'react-icons/fi';
 import api from '../../services/api';
@@ -7,6 +9,7 @@ import api from '../../services/api';
 import { Title, Form, Repositories, Error } from './styles';
 
 import logoImg from '../../assets/logoGitExplore.svg';
+import schema from './validation';
 
 interface Repository {
   // eslint-disable-next-line camelcase
@@ -20,8 +23,6 @@ interface Repository {
 }
 
 const Dashboard: React.FC = () => {
-  const [newRepo, setNewRepo] = useState('');
-  const [inputError, setInputError] = useState('');
   const [repositories, setRepositories] = useState<Repository[]>(() => {
     const storagedRepositories = localStorage.getItem(
       '@GitHubExplre:repositories',
@@ -33,6 +34,14 @@ const Dashboard: React.FC = () => {
     return [];
   });
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    setError,
+  } = useForm({ resolver: yupResolver(schema) });
+
   useEffect(() => {
     localStorage.setItem(
       '@GitHubExplre:repositories',
@@ -40,15 +49,10 @@ const Dashboard: React.FC = () => {
     );
   }, [repositories]);
 
-  async function handleAddRepository(
-    event: FormEvent<HTMLFormElement>,
-  ): Promise<void> {
-    event.preventDefault();
-
-    if (!newRepo) {
-      setInputError('Digite autor/nome do repositorio');
-      return;
-    }
+  const handleAddRepository: SubmitHandler<{ newRepo: string }> = async (
+    data,
+  ) => {
+    const { newRepo } = data;
 
     try {
       const response = await api.get<Repository>(`repos/${newRepo}`);
@@ -56,28 +60,31 @@ const Dashboard: React.FC = () => {
       const repository = response.data;
 
       setRepositories([...repositories, repository]);
-      setNewRepo('');
+      reset();
       setInputError('');
     } catch (err) {
-      setInputError('Erro na busca por esse repositorio');
+      setError('newRepo', { message: 'Erro na busca por esse repositorio' });
     }
-  }
+  };
 
   return (
     <>
       <img src={logoImg} alt="Github explore" />
       <Title>Explore repositórios no Github</Title>
 
-      <Form hasError={!!inputError} onSubmit={handleAddRepository}>
+      <Form
+        hasError={errors.newRepo}
+        onSubmit={handleSubmit(handleAddRepository)}
+      >
         <input
-          value={newRepo}
-          onChange={(e) => setNewRepo(e.target.value)}
           placeholder="Digite o nome do repositorio"
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...register('newRepo')}
         />
         <button type="submit">Pesquisar</button>
       </Form>
 
-      {inputError && <Error> {inputError} </Error>}
+      <Error> {errors.newRepo?.message} </Error>
 
       <Repositories>
         {repositories.map((repository) => (
