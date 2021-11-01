@@ -61,8 +61,7 @@ const Dashboard: React.FC = () => {
 
       setRepositories([...repositories, repository]);
       reset();
-      setInputError('');
-    } catch (err) {
+    } catch {
       setError('newRepo', { message: 'Erro na busca por esse repositorio' });
     }
   };
